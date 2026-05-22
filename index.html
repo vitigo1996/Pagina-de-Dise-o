@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CROMÁTICA — Simulador de Teoría del Color</title>
+<style>
+:root{
+  --bg:#090d16;--bg-h:rgba(5,9,20,.93);--bg-p:rgba(13,19,34,.82);
+  --bg-d:#040810;--bd:#1a2840;--bd-s:rgba(26,40,64,.5);
+  --tx:#dde4f0;--tx2:#7e93b0;--tx3:#3d526a;
+  --ac:#7c82f5;--ac2:#5b61e8;
+  --red:#f87171;--grn:#4ade80;--ylw:#fbbf24;
+  --r:18px;--r-s:12px;--r-xs:8px;
+  --tw-b:#090d16;
+}
+html.light{
+  --bg:#eef2f9;--bg-h:rgba(240,244,252,.96);--bg-p:rgba(255,255,255,.92);
+  --bg-d:#f0f4fb;--bd:#c8d4e8;--bd-s:rgba(200,212,232,.55);
+  --tx:#0e1828;--tx2:#4a607c;--tx3:#9aaabb;
+  --ac:#4f46e5;--ac2:#3730d4;
+  --tw-b:#f0f4fb;
+}
+html{overflow-y:scroll;}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--tx);min-height:100vh;display:flex;flex-direction:column;transition:background .3s,color .3s;font-weight:600;}
+
+/* ── HEADER ── */
+header{background:var(--bg-h);border-bottom:1px solid var(--bd);backdrop-filter:blur(14px);position:sticky;top:0;z-index:100;padding:11px 28px;}
+.hdr{max-width:1440px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:12px;}
+.badge{display:inline-block;padding:2px 7px;background:var(--ac2);color:#fff;font-size:10px;font-weight:800;border-radius:4px;letter-spacing:.12em;text-transform:uppercase;}
+.app-name{font-size:19px;font-weight:800;color:var(--tx);letter-spacing:-.01em;margin-left:8px;}
+.app-sub{font-size:11px;font-weight:700;color:var(--tx2);margin-top:1px;}
+.theme-btn{display:flex;align-items:center;justify-content:center;gap:5px;width:110px;height:30px;padding:6px 0;background:var(--bg-p);border:1px solid var(--bd);color:var(--tx2);font-size:11px;font-weight:700;border-radius:8px;cursor:pointer;transition:all .2s;flex-shrink:0;}
+.theme-btn:hover{color:var(--tx);}
+
+/* ── LAYOUT ── */
+.wrap{max-width:1440px;margin:0 auto;padding:18px 28px;flex-grow:1;display:flex;flex-direction:column;gap:18px;}
+.cols3{display:grid;grid-template-columns:380px 1.15fr 1fr;gap:16px;align-items:stretch;}
+@media (max-width:1024px){.cols3{grid-template-columns:1fr;}}
+
+/* ── PANELS ── */
+.pnl{background:var(--bg-p);border:1px solid var(--bd);border-radius:var(--r);padding:18px;transition:background .3s,border-color .3s;}
+.pnl+.pnl{margin-top:13px;}
+.ptitle{font-size:13px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--ac);margin-bottom:14px;display:flex;align-items:center;gap:6px;}
+.pnum{width:18px;height:18px;background:var(--ac);color:#fff;font-size:9px;font-weight:800;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;}
+
+/* ── SLIDERS ── */
+input[type=range]{-webkit-appearance:none;appearance:none;background:transparent;cursor:pointer;width:100%;}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;height:16px;width:16px;border-radius:50%;background:#fff;border:2px solid var(--tw-b);box-shadow:0 0 6px rgba(0,0,0,.4);margin-top:-5px;}
+input[type=range]::-webkit-slider-runnable-track{height:6px;border-radius:3px;}
+#sH::-webkit-slider-runnable-track{background:linear-gradient(to right,#f00,#ff0 17%,#0f0 33%,#0ff 50%,#00f 67%,#f0f 83%,#f00);}
+#sS::-webkit-slider-runnable-track{background:var(--sg,linear-gradient(to right,#808080,#0ff));}
+#sV::-webkit-slider-runnable-track{background:var(--vg,linear-gradient(to right,#000,#0ff));}
+.slrow{margin-bottom:14px;}
+.sllbl{display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px;font-weight:700;}
+.slname{color:var(--tx2);font-weight:700;}
+.slval{font-family:monospace;color:var(--ac);font-weight:800;font-size:13px;}
+
+/* ── PALETTE (col 1) ── */
+#harmPalette{display:grid;grid-template-columns:1fr;gap:12px;align-content:start;}
+@media (max-width:1024px){#harmPalette{grid-template-columns:repeat(2,1fr);}}
+@media (max-width:600px){#harmPalette{grid-template-columns:1fr;}}
+.pi{display:flex;flex-direction:row;background:var(--bg-d);border:1px solid var(--bd-s);border-radius:var(--r-s);overflow:hidden;cursor:pointer;transition:transform .15s,border-color .15s;}
+.pi:hover{transform:translateY(-3px);border-color:var(--ac);box-shadow:0 6px 16px rgba(0,0,0,.25);}
+.pi.base{border-color:var(--ac);box-shadow:0 0 0 2px rgba(124,130,245,.18);}
+.psw{width:110px;height:auto;min-height:100%;flex-shrink:0;}
+.pcodes{padding:12px 18px;display:flex;flex-grow:1;flex-direction:column;gap:10px;justify-content:center;}
+.pheader-text{display:flex;flex-direction:column;gap:2px;}
+.plbl{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--tx2);}
+.phex{font-family:monospace;font-size:17px;font-weight:900;color:var(--tx);line-height:1.1;}
+.pbar-groups-horizontal{display:flex;gap:16px;border-top:1px dashed var(--bd-s);padding-top:10px;}
+.pbar-group{flex:1;display:flex;flex-direction:column;gap:3px;}
+.pbar-group-lbl{font-size:9px;font-weight:900;letter-spacing:.12em;color:var(--tx3);text-transform:uppercase;margin-bottom:4px;font-family:monospace;}
+.pbar-row{display:flex;align-items:center;gap:4px;}
+.pbar-name{font-size:10px;font-weight:800;color:var(--tx2);width:14px;flex-shrink:0;font-family:monospace;}
+.pbar-track{flex:1;height:6px;background:var(--bd);border-radius:3px;overflow:hidden;}
+.pbar-fill{height:100%;border-radius:3px;transition:width .2s;}
+.pbar-val{font-size:10px;font-weight:800;font-family:monospace;color:var(--tx);width:32px;text-align:right;flex-shrink:0;}
+
+/* ── CENTER: WHEEL + CONTROLS BELOW ── */
+.col-center{display:flex;flex-direction:column;gap:13px;}
+.wheel-pnl{background:var(--bg-p);border:1px solid var(--bd);border-radius:var(--r);padding:18px;display:flex;flex-direction:column;align-items:center;gap:14px;transition:background .3s;}
+.wheel-wrap{position:relative;width:240px;height:240px;flex-shrink:0;}
+#cwCanvas{cursor:crosshair;border-radius:50%;border:4px solid var(--bg);box-shadow:0 6px 28px rgba(0,0,0,.4);width:100%;height:100%;}
+
+/* ── SELECT ── */
+.sel{width:100%;background:var(--bg-d);border:1px solid var(--bd);color:var(--tx);font-size:13px;font-weight:700;border-radius:var(--r-xs);padding:8px 10px;outline:none;cursor:pointer;transition:border-color .2s;}
+.sel:focus{border-color:var(--ac);}
+.sellbl{font-size:12px;color:var(--tx2);font-weight:800;display:block;margin-bottom:4px;}
+
+/* ── JERARQUÍA VISUAL (col 3) ── */
+.hier-pnl{background:var(--bg-p);border:1px solid var(--bd);border-radius:var(--r);overflow:hidden;transition:background .3s;}
+.hier-header{padding:14px 18px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--bd);}
+.hier-title{font-size:13px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--ac);}
+.hier-body{padding:18px;flex-grow:1;overflow-y:auto;position:relative;display:flex;flex-direction:column;justify-content:stretch;gap:16px;}
+.hier-body::-webkit-scrollbar{width:6px;}
+.hier-body::-webkit-scrollbar-track{background:transparent;}
+.hier-body::-webkit-scrollbar-thumb{background:var(--bd);border-radius:3px;}
+.hier-body::-webkit-scrollbar-thumb:hover{background:var(--ac);}
+
+/* Contrast type cards */
+.ctype-label{font-size:12px;font-weight:900;text-transform:uppercase;letter-spacing:.1em;color:var(--tx2);margin-bottom:6px;}
+.ctype-row{display:flex;flex-direction:column;gap:6px;align-items:stretch;}
+
+/* Visual hierarchy square demo */
+.cviz{flex:1;border-radius:10px;overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center;height:85px;max-height:85px;cursor:pointer;transition:transform .12s,box-shadow .12s;border:1px solid rgba(255,255,255,.06);}
+.cviz:hover{transform:scale(1.04);box-shadow:0 6px 20px rgba(0,0,0,.35);outline:2px solid var(--ac);}
+.cviz-inner{border-radius:6px;display:flex;align-items:center;justify-content:center;transition:background .15s;}
+.cviz-label{position:absolute;bottom:6px;left:0;right:0;text-align:center;font-size:10px;font-weight:900;letter-spacing:.05em;opacity:1;z-index:2;}
+/* contrast ratio badge on card */
+.cviz-badge{position:absolute;top:6px;right:6px;font-family:monospace;font-size:10px;font-weight:900;padding:2px 5px;border-radius:4px;z-index:2;}
+
+
+
+footer{padding:12px 28px;text-align:center;font-size:11px;font-weight:700;color:var(--tx3);border-top:1px solid var(--bd);}
+</style>
+</head>
+<body>
+
+<svg style="display:none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="protanopia"><feColorMatrix type="matrix" values="0.567,0.433,0,0,0,0.558,0.442,0,0,0,0,0.242,0.758,0,0,0,0,0,1,0"/></filter>
+    <filter id="deuteranopia"><feColorMatrix type="matrix" values="0.625,0.375,0,0,0,0.7,0.3,0,0,0,0,0.3,0.7,0,0,0,0,0,1,0"/></filter>
+    <filter id="tritanopia"><feColorMatrix type="matrix" values="0.95,0.05,0,0,0,0,0.433,0.567,0,0,0,0.475,0.525,0,0,0,0,0,1,0"/></filter>
+  </defs>
+</svg>
+
+<header>
+  <div class="hdr">
+    <div style="display:flex;align-items:center;gap:8px;">
+      <span class="badge">Módulo Académico</span>
+      <div>
+        <span class="app-name">CROMÁTICA</span>
+        <div class="app-sub">Síntesis Cromática · Armonías · Accesibilidad Visual</div>
+      </div>
+    </div>
+    <button class="theme-btn" onclick="toggleTheme()" id="themeBtn">
+      <svg id="themeIco" width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707M17.657 17.657l-.707-.707M6.343 6.343l-.707-.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+      <span id="themeLbl">Tema Claro</span>
+    </button>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="cols3">
+
+    <!-- ══ COLUMNA IZQUIERDA: CONTROLES Y CÍRCULO stackeados ══ -->
+    <div style="display:flex; flex-direction:column; gap:13px;">
+      <!-- Dimensiones morfológicas -->
+      <div class="pnl">
+        <div class="ptitle">Dimensiones Morfológicas</div>
+        <div class="slrow">
+          <div class="sllbl"><span class="slname">Tono (Matiz)</span><span class="slval" id="vH">180°</span></div>
+          <input id="sH" type="range" min="0" max="360" value="180" oninput="onSlider()">
+        </div>
+        <div class="slrow">
+          <div class="sllbl"><span class="slname">Saturación (Croma)</span><span class="slval" id="vS">100%</span></div>
+          <input id="sS" type="range" min="0" max="100" value="100" oninput="onSlider()">
+        </div>
+        <div class="slrow" style="margin-bottom:0">
+          <div class="sllbl"><span class="slname">Valor (Luminosidad)</span><span class="slval" id="vV">100%</span></div>
+          <input id="sV" type="range" min="0" max="100" value="100" oninput="onSlider()">
+        </div>
+      </div>
+
+      <!-- Círculo cromático -->
+      <div class="wheel-pnl">
+        <div style="width:100%;text-align:center;">
+          <div class="ptitle" style="justify-content:center;margin-bottom:3px;">Círculo Cromático</div>
+          <div style="font-size:10px;color:var(--tx2);">Vectores geométricos de armonía</div>
+        </div>
+        <div class="wheel-wrap">
+          <canvas id="cwCanvas" width="300" height="300"></canvas>
+        </div>
+      </div>
+
+      <!-- Accesibilidad y esquema -->
+      <div class="pnl">
+        <div class="ptitle">Accesibilidad y Esquema</div>
+        <label class="sellbl">Esquema Armónico:</label>
+        <select id="selHarm" onchange="setHarmony(this.value)" class="sel" style="margin-bottom:11px;">
+          <option value="monochromatic">Monocromático (Escala tonal)</option>
+          <option value="analogous" selected>Análogo (±45°)</option>
+          <option value="complementary">Complementario (180°)</option>
+          <option value="triadic">Tríada (120°)</option>
+        </select>
+        <label class="sellbl">Simulador de Daltonismo:</label>
+        <select id="selDalt" onchange="applyDalt(this.value)" class="sel">
+          <option value="none">Visión Normal</option>
+          <option value="protanopia">Protanopía (sin Rojo)</option>
+          <option value="deuteranopia">Deuteranopía (sin Verde)</option>
+          <option value="tritanopia">Tritanopía (sin Azul)</option>
+        </select>
+        <p id="daltExplain" style="font-size:11px;font-weight:600;color:var(--tx2);line-height:1.55;margin-top:8px;">La visión normal procesa los tres conos fundamentales. El filtro actúa sobre el círculo y el mockup.</p>
+      </div>
+    </div>
+
+    <!-- ══ COLUMNA DERECHA: PALETA CROMÁTICA ══ -->
+    <div style="height:100%; overflow:hidden;">
+      <div class="pnl" style="height:100%; display:flex; flex-direction:column; justify-content:stretch; overflow:hidden;">
+        <div class="ptitle">Paleta Cromática</div>
+        <div id="harmPalette" style="flex-grow:1; display:grid; grid-template-columns:1fr; gap:12px; overflow:hidden;"></div>
+      </div>
+    </div>
+
+    <!-- Contraste en la columna derecha -->
+    <div class="hier-pnl" style="height:100%; display:flex; flex-direction:column; justify-content:stretch; overflow:hidden;">
+      <div class="hier-header" style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
+        <div class="hier-title">Contraste</div>
+      </div>
+      <div class="hier-body" id="hierBody">
+        <!-- Contenedor del contraste (ahora una columna vertical de categorías con filas de tarjetas) -->
+        <div id="hierContrastGrid" style="display:flex; flex-direction:column; gap:16px; border:1px solid transparent; box-sizing:border-box;"></div>
+      </div>
+    </div>
+
+  </div><!-- /cols3 -->
+</div><!-- /wrap -->
+
+<footer>CROMÁTICA — Síntesis del Color, Psicología Cromática y Tipografía Editorial · Wucius Wong · Adrian Frutiger · James Gurney</footer>
+
+<script>
+var S={hue:180,sat:100,val:100,harmony:'analogous',dalt:'none',theme:'dark',mockTheme:'dark'};
+var canvas=document.getElementById('cwCanvas'),ctx=canvas.getContext('2d'),dragging=false;
+window.onload=function(){setupCanvas();updateAll();};
+
+/* ── GLOBAL THEME ── */
+function toggleTheme(){
+  S.theme=S.theme==='dark'?'light':'dark';
+  if(S.theme==='light'){
+    document.documentElement.classList.add('light');
+    document.getElementById('themeLbl').textContent='Tema Oscuro';
+    document.getElementById('themeIco').innerHTML='<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>';
+  }else{
+    document.documentElement.classList.remove('light');
+    document.getElementById('themeLbl').textContent='Tema Claro';
+    document.getElementById('themeIco').innerHTML='<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707M17.657 17.657l-.707-.707M6.343 6.343l-.707-.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>';
+  }
+  updateAll();
+}
+
+/* ── INPUTS ── */
+function onSlider(){
+  S.hue=+document.getElementById('sH').value;
+  S.sat=+document.getElementById('sS').value;
+  S.val=+document.getElementById('sV').value;
+  updateAll();
+}
+function setHarmony(v){S.harmony=v;updateAll();}
+function applyDalt(v){
+  S.dalt=v;
+  var f=v!=='none'?'url(#'+v+')':'none';
+  document.getElementById('cwCanvas').style.filter=f;
+  document.getElementById('hierBody').style.filter=f;
+  var t={
+    none:'La visión normal procesa los tres conos fundamentales. El filtro actúa sobre el círculo y el mockup.',
+    protanopia:'<strong>Protanopía:</strong> ceguera al rojo. Los tonos rojos se perciben como neutros o amarillos.',
+    deuteranopia:'<strong>Deuteranopía:</strong> sin receptores de verde. Severa confusión rojo-verde.',
+    tritanopia:'<strong>Tritanopía:</strong> sin azules. Los azules se confunden con verdes.'
+  };
+  document.getElementById('daltExplain').innerHTML=t[v];
+}
+
+/* ── MAIN UPDATE ── */
+function updateAll(){
+  document.getElementById('vH').textContent=S.hue+'°';
+  document.getElementById('vS').textContent=S.sat+'%';
+  document.getElementById('vV').textContent=S.val+'%';
+  document.documentElement.style.setProperty('--sg',
+    'linear-gradient(to right,'+hex(128,128,128)+','+hex.apply(null,hsv2rgb(S.hue,100,S.val))+')');
+  document.documentElement.style.setProperty('--vg',
+    'linear-gradient(to right,#000,'+hex.apply(null,hsv2rgb(S.hue,S.sat,100))+')');
+  var cols=calcHarmony();
+  renderPalette(cols);
+  drawWheel(cols);
+  renderHierarchy(cols);
+}
+/* ── PALETTE ── */
+function renderPalette(cols){
+  var c=document.getElementById('harmPalette');c.innerHTML='';
+  cols.forEach(function(col,i){
+    var r=col.rgb[0],g=col.rgb[1],b=col.rgb[2];
+    var cm=cmyk(r,g,b);
+    var rw=Math.round((r/255)*100),gw=Math.round((g/255)*100),bw=Math.round((b/255)*100);
+    var cw=cm[0],mw=cm[1],yw=cm[2],kw=cm[3];
+    c.innerHTML+=
+      '<div class="pi'+(i===0?' base':'')+'" onclick="pickColor('+col.h+','+col.s+','+col.v+')">'+
+        '<div class="psw" style="background:'+col.hex+';"></div>'+
+        '<div class="pcodes">'+
+          '<div class="pheader-text">'+
+            '<div class="plbl">'+col.lbl+(i===0?' ★':'')+'</div>'+
+            '<div class="phex">'+col.hex+'</div>'+
+          '</div>'+
+          '<div class="pbar-groups-horizontal">'+
+            '<div class="pbar-group">'+
+              '<div class="pbar-group-lbl">RGB</div>'+
+              '<div class="pbar-row"><span class="pbar-name">R</span><div class="pbar-track"><div class="pbar-fill" style="width:'+rw+'%;background:#f87171;"></div></div><span class="pbar-val">'+r+'</span></div>'+
+              '<div class="pbar-row"><span class="pbar-name">G</span><div class="pbar-track"><div class="pbar-fill" style="width:'+gw+'%;background:#4ade80;"></div></div><span class="pbar-val">'+g+'</span></div>'+
+              '<div class="pbar-row"><span class="pbar-name">B</span><div class="pbar-track"><div class="pbar-fill" style="width:'+bw+'%;background:#60a5fa;"></div></div><span class="pbar-val">'+b+'</span></div>'+
+            '</div>'+
+            '<div class="pbar-group">'+
+              '<div class="pbar-group-lbl">CMYK</div>'+
+              '<div class="pbar-row"><span class="pbar-name">C</span><div class="pbar-track"><div class="pbar-fill" style="width:'+cw+'%;background:#22d3ee;"></div></div><span class="pbar-val">'+cw+'%</span></div>'+
+              '<div class="pbar-row"><span class="pbar-name">M</span><div class="pbar-track"><div class="pbar-fill" style="width:'+mw+'%;background:#e879f9;"></div></div><span class="pbar-val">'+mw+'%</span></div>'+
+              '<div class="pbar-row"><span class="pbar-name">Y</span><div class="pbar-track"><div class="pbar-fill" style="width:'+yw+'%;background:#facc15;"></div></div><span class="pbar-val">'+yw+'%</span></div>'+
+              '<div class="pbar-row"><span class="pbar-name">K</span><div class="pbar-track"><div class="pbar-fill" style="width:'+kw+'%;background:#94a3b8;"></div></div><span class="pbar-val">'+kw+'%</span></div>'+
+            '</div>'+
+          '</div>'+
+        '</div>'+
+      '</div>';
+  });
+}
+
+function pickColor(h,s,v){
+  S.hue=h;S.sat=s;S.val=v;
+  document.getElementById('sH').value=h;
+  document.getElementById('sS').value=s;
+  document.getElementById('sV').value=v;
+  updateAll();
+}
+
+/* ── JERARQUÍA VISUAL ── */
+function renderHierarchy(cols){
+  var contrastGrid=document.getElementById('hierContrastGrid');
+  var mText=document.getElementById('mText');
+  var base=cols[0];
+  var bh=base.h, bs=base.s, bv=base.v||base.val;
+
+  contrastGrid.innerHTML = '';
+
+  // Helper: cuadro exterior + cuadro interior centrado que funciona como botón
+  function makeSquare(outerHex,innerHex,outerRgb,innerRgb,label,oh,os,ov,customH,textBelow){
+    var rat=contrastRatio(innerRgb,outerRgb);
+    var pass=rat>=4.5,partial=rat>=3;
+    var badgeColor=pass?'#4ade80':partial?'#fbbf24':'#f87171';
+    var div=document.createElement('div');
+    var h = customH || '85px';
+
+    if (textBelow) {
+      div.style.cssText='display:flex;flex-direction:column;height:'+h+';max-height:'+h+';justify-content:space-between;cursor:pointer;position:relative;min-width:0;width:100%;box-sizing:border-box;';
+      div.onclick=function(){
+        pickColor(oh,os,ov);
+      };
+      div.innerHTML=
+        '<div class="cviz" style="background:'+outerHex+';height:60px;max-height:60px;flex:none;width:100%;position:relative;margin:0;min-width:0;box-sizing:border-box;">'+
+          '<div class="cviz-inner" style="width:40%;height:40%;background:'+innerHex+';box-shadow:0 2px 8px rgba(0,0,0,.25);border-radius:4px;"></div>'+
+          '<div class="cviz-badge" style="background:rgba(0,0,0,0.65);color:'+badgeColor+';">'+rat.toFixed(1)+':1</div>'+
+        '</div>'+
+        '<div style="text-align:center;font-size:10px;font-weight:900;letter-spacing:.05em;color:var(--tx2);height:19px;line-height:19px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:6px;width:100%;box-sizing:border-box;min-width:0;">'+label+' <span style="font-family:monospace;font-size:10px;font-weight:800;opacity:0.85;">('+outerHex+')</span></div>';
+    } else {
+      div.className='cviz';
+      div.style.cssText='background:'+outerHex+';height:'+h+';max-height:'+h+';min-width:0;width:100%;box-sizing:border-box;';
+      div.title='Haz clic para cargar este fondo · ratio '+rat.toFixed(1)+':1';
+      div.onclick=function(){
+        pickColor(oh,os,ov);
+      };
+      div.innerHTML=
+        '<div class="cviz-inner" style="width:40%;height:40%;background:'+innerHex+';box-shadow:0 2px 8px rgba(0,0,0,.25);border-radius:4px;"></div>'+
+        '<div class="cviz-badge" style="background:rgba(0,0,0,0.65);color:'+badgeColor+';">'+rat.toFixed(1)+':1</div>'+
+        '<div class="cviz-label" style="color:#ffffff;background:rgba(0,0,0,0.45);border-radius:3px;padding:1px 4px;font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;left:4px;right:4px;">'+label+' <span style="font-family:monospace;font-size:10px;">('+outerHex+')</span></div>';
+    }
+    return div;
+  }
+
+  // Helper to create a grid of cards
+  function createContrastGrid(section, cards, gridTemplate, customH, textBelow) {
+    var grid = document.createElement('div');
+    var template = gridTemplate === '1fr 1fr' ? 'repeat(2, minmax(0, 1fr))' : gridTemplate;
+    grid.style.cssText = 'display:grid;grid-template-columns:' + template + ';gap:6px;width:100%;box-sizing:border-box;min-width:0;';
+    cards.forEach(function(c) {
+      grid.appendChild(makeSquare(c.outer, c.inner, c.outerRgb, c.innerRgb, c.lbl, c.h, c.s, c.v, customH, textBelow));
+    });
+    section.appendChild(grid);
+  }
+
+  // ── 1. Valor ──
+  var valSection = makeSection('Valor');
+  var darkV = Math.max(10, bv - 45);
+  var darkRgb = hsv2rgb(bh, bs, darkV);
+  var darkHex = hex(darkRgb[0], darkRgb[1], darkRgb[2]);
+  var lightV = Math.min(100, bv + 35);
+  var lightRgb = hsv2rgb(bh, bs, lightV);
+  var lightHex = hex(lightRgb[0], lightRgb[1], lightRgb[2]);
+
+  createContrastGrid(valSection, [
+    {outer: darkHex, inner: base.hex, outerRgb: darkRgb, innerRgb: base.rgb, lbl: 'Base / Oscuro', h: bh, s: bs, v: darkV},
+    {outer: lightHex, inner: base.hex, outerRgb: lightRgb, innerRgb: base.rgb, lbl: 'Base / Claro', h: bh, s: bs, v: lightV}
+  ], '1fr 1fr', '85px', true);
+
+  // ── 2. Saturación ──
+  var satSection = makeSection('Saturación');
+  var desatS = Math.max(5, bs - 65);
+  var desatRgb = hsv2rgb(bh, desatS, bv);
+  var desatHex = hex(desatRgb[0], desatRgb[1], desatRgb[2]);
+  var satS = 100;
+  var satRgb = hsv2rgb(bh, satS, bv);
+  var satHex = hex(satRgb[0], satRgb[1], satRgb[2]);
+
+  createContrastGrid(satSection, [
+    {outer: desatHex, inner: base.hex, outerRgb: desatRgb, innerRgb: base.rgb, lbl: 'Base / Opaco', h: bh, s: desatS, v: bv},
+    {outer: satHex, inner: desatHex, outerRgb: satRgb, innerRgb: desatRgb, lbl: 'Opaco / Sat.', h: bh, s: satS, v: bv}
+  ], '1fr 1fr', '85px', true);
+
+  // ── 3. Tono ──
+  var toneSection = makeSection('Tono');
+  var tone1h = (bh - 45 + 360) % 360;
+  var tone2h = (bh + 45) % 360;
+  var tone1Rgb = hsv2rgb(tone1h, bs, bv);
+  var tone2Rgb = hsv2rgb(tone2h, bs, bv);
+  var tone1Hex = hex(tone1Rgb[0], tone1Rgb[1], tone1Rgb[2]);
+  var tone2Hex = hex(tone2Rgb[0], tone2Rgb[1], tone2Rgb[2]);
+
+  createContrastGrid(toneSection, [
+    {outer: tone1Hex, inner: base.hex, outerRgb: tone1Rgb, innerRgb: base.rgb, lbl: 'Base / M−45°', h: tone1h, s: bs, v: bv},
+    {outer: tone2Hex, inner: base.hex, outerRgb: tone2Rgb, innerRgb: base.rgb, lbl: 'Base / M+45°', h: tone2h, s: bs, v: bv}
+  ], '1fr 1fr', '85px', true);
+
+  // ── 4. Complementarios (Estático 180°) ──
+  var compSection = makeSection('Complementarios');
+  var compH = (bh + 180) % 360;
+  var compRgb = hsv2rgb(compH, bs, bv);
+  var compHex = hex(compRgb[0], compRgb[1], compRgb[2]);
+
+  createContrastGrid(compSection, [
+    {outer: compHex, inner: base.hex, outerRgb: compRgb, innerRgb: base.rgb, lbl: 'Complemento / Base', h: compH, s: bs, v: bv},
+    {outer: base.hex, inner: compHex, outerRgb: base.rgb, innerRgb: compRgb, lbl: 'Base / Complemento', h: bh, s: bs, v: bv}
+  ], '1fr 1fr', '85px', true);
+
+  // ── 5. Tríadas (Estático 120° y 240°) ──
+  var triadSection = makeSection('Tríadas');
+  var tri1h = (bh + 120) % 360;
+  var tri2h = (bh + 240) % 360;
+  var tri1Rgb = hsv2rgb(tri1h, bs, bv);
+  var tri2Rgb = hsv2rgb(tri2h, bs, bv);
+  var tri1Hex = hex(tri1Rgb[0], tri1Rgb[1], tri1Rgb[2]);
+  var tri2Hex = hex(tri2Rgb[0], tri2Rgb[1], tri2Rgb[2]);
+
+  createContrastGrid(triadSection, [
+    {outer: tri1Hex, inner: base.hex, outerRgb: tri1Rgb, innerRgb: base.rgb, lbl: 'Tríada 1 / Base', h: tri1h, s: bs, v: bv},
+    {outer: tri2Hex, inner: base.hex, outerRgb: tri2Rgb, innerRgb: base.rgb, lbl: 'Tríada 2 / Base', h: tri2h, s: bs, v: bv}
+  ], '1fr 1fr', '85px', true);
+
+  // Append in requested order: Tono, Saturación, Valor, Complementarios, Tríadas
+  contrastGrid.appendChild(toneSection);
+  contrastGrid.appendChild(satSection);
+  contrastGrid.appendChild(valSection);
+  contrastGrid.appendChild(compSection);
+  contrastGrid.appendChild(triadSection);
+
+  var r=base.rgb[0], g=base.rgb[1], b=base.rgb[2];
+  var isDark = (S.mockTheme === 'dark');
+
+  if (mText) {
+    var bgRgb = isDark ? hsv2rgb(bh, Math.min(25, bs), 10) : hsv2rgb(bh, Math.min(8, bs), 97);
+    var bgHex = hex(bgRgb[0], bgRgb[1], bgRgb[2]);
+    mText.style.backgroundColor = bgHex;
+    mText.style.borderColor = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)';
+
+    var titleH1 = document.getElementById('mH1');
+    if (titleH1) titleH1.style.color = base.hex;
+
+    var bodyPara = document.getElementById('mBody');
+    if (bodyPara) bodyPara.style.color = isDark ? '#e2e8f0' : '#1e293b';
+
+    var badge = document.getElementById('mBadge');
+    if (badge) {
+      badge.style.backgroundColor = isDark ? 'rgba('+r+','+g+','+b+',0.16)' : 'rgba('+r+','+g+','+b+',0.10)';
+      badge.style.color = base.hex;
+      badge.style.border = '1px solid ' + (isDark ? 'rgba('+r+','+g+','+b+',0.3)' : 'rgba('+r+','+g+','+b+',0.2)');
+    }
+
+    var btn = document.getElementById('mBtn');
+    if (btn) {
+      btn.style.backgroundColor = base.hex;
+      var btnTextRgb = contrastRatio(base.rgb, [255,255,255]) > contrastRatio(base.rgb, [0,0,0]) ? '#ffffff' : '#000000';
+      btn.style.color = btnTextRgb;
+    }
+
+    var dot = document.getElementById('mDot');
+    if (dot) {
+      var secondaryHex = cols[1] ? cols[1].hex : base.hex;
+      dot.style.backgroundColor = secondaryHex;
+    }
+
+    var divider = document.getElementById('mMiniDivider');
+    if (divider) {
+      divider.style.borderTop = isDark ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(0,0,0,0.08)';
+    }
+
+    var mockThemeBtn = document.getElementById('mockThemeBtn');
+    if (mockThemeBtn) {
+      if (isDark) {
+        mockThemeBtn.style.backgroundColor = 'rgba(255,255,255,0.08)';
+        mockThemeBtn.style.color = '#e2e8f0';
+        mockThemeBtn.style.border = '1px solid rgba(255,255,255,0.15)';
+      } else {
+        mockThemeBtn.style.backgroundColor = 'rgba(0,0,0,0.06)';
+        mockThemeBtn.style.color = '#1e293b';
+        mockThemeBtn.style.border = '1px solid rgba(0,0,0,0.1)';
+      }
+    }
+  }
+}
+
+function toggleMockTheme(){
+  S.mockTheme = S.mockTheme === 'dark' ? 'light' : 'dark';
+  var lbl = document.getElementById('mockThemeLbl');
+  var ico = document.getElementById('mockThemeIco');
+  
+  if (S.mockTheme === 'light') {
+    if (lbl) lbl.textContent = 'Claro';
+    if (ico) ico.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>';
+  } else {
+    if (lbl) lbl.textContent = 'Oscuro';
+    if (ico) ico.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707M17.657 17.657l-.707-.707M6.343 6.343l-.707-.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>';
+  }
+  renderHierarchy(calcHarmony());
+}
+
+function makeSection(title){
+  var sec=document.createElement('div');
+  var lbl=document.createElement('div');
+  lbl.className='ctype-label';
+  lbl.textContent=title;
+  sec.appendChild(lbl);
+  return sec;
+}
+function makeRow(){
+  var row=document.createElement('div');
+  row.className='ctype-row';
+  return row;
+}
+
+/* ── WHEEL ── */
+function drawWheel(cols){
+  var w=canvas.width,h=canvas.height,cx=w/2,cy=h/2,rad=w/2-18;
+  ctx.clearRect(0,0,w,h);
+  for(var i=0;i<360;i++){
+    var step=(2*Math.PI)/360;
+    ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,rad,i*step,(i+1)*step);ctx.closePath();
+    var g2=ctx.createRadialGradient(cx,cy,0,cx,cy,rad);
+    g2.addColorStop(0,'hsla('+i+',0%,'+S.val+'%,1)');
+    g2.addColorStop(1,'hsla('+i+',100%,'+(S.val/2)+'%,1)');
+    ctx.fillStyle=g2;ctx.fill();
+  }
+  if(cols.length>1){
+    ctx.beginPath();ctx.lineWidth=2;ctx.strokeStyle='rgba(255,255,255,.8)';ctx.setLineDash([4,4]);
+    cols.forEach(function(c,idx){
+      var ar=(c.h*Math.PI)/180,sr=c.s/100;
+      var x=cx+Math.cos(ar)*rad*sr,y=cy+Math.sin(ar)*rad*sr;
+      if(idx===0)ctx.moveTo(x,y);
+      else if(S.harmony==='triadic'||S.harmony==='analogous')ctx.lineTo(x,y);
+      else{ctx.moveTo(cx,cy);ctx.lineTo(x,y);}
+    });
+    if(S.harmony==='triadic'||S.harmony==='analogous')ctx.closePath();
+    ctx.stroke();ctx.setLineDash([]);
+  }
+  cols.forEach(function(c,idx){
+    var ar=(c.h*Math.PI)/180,sr=c.s/100;
+    var x=cx+Math.cos(ar)*rad*sr,y=cy+Math.sin(ar)*rad*sr;
+    ctx.beginPath();ctx.arc(x,y,idx===0?9:7,0,2*Math.PI);
+    ctx.fillStyle='#fff';ctx.shadowColor='rgba(0,0,0,.5)';ctx.shadowBlur=5;ctx.fill();ctx.shadowBlur=0;
+    ctx.beginPath();ctx.arc(x,y,idx===0?7:5,0,2*Math.PI);ctx.fillStyle=idx===0?'#10b981':'#6366f1';ctx.fill();
+    ctx.beginPath();ctx.arc(x,y,idx===0?5:3,0,2*Math.PI);ctx.fillStyle=c.hex;ctx.fill();
+  });
+}
+
+function setupCanvas(){
+  function handle(e){
+    var rect=canvas.getBoundingClientRect();
+    var ex=(e.clientX||(e.touches&&e.touches[0].clientX)||0)-rect.left;
+    var ey=(e.clientY||(e.touches&&e.touches[0].clientY)||0)-rect.top;
+    var sx=canvas.width/rect.width,sy=canvas.height/rect.height;
+    var cx=canvas.width/2,cy=canvas.height/2,r2=canvas.width/2-18;
+    var dx=ex*sx-cx,dy=ey*sy-cy;
+    var dist=Math.sqrt(dx*dx+dy*dy);
+    var a=Math.atan2(dy,dx)*(180/Math.PI);if(a<0)a+=360;
+    S.hue=Math.round(a);S.sat=Math.min(100,Math.round((dist/r2)*100));
+    document.getElementById('sH').value=S.hue;
+    document.getElementById('sS').value=S.sat;
+    updateAll();
+  }
+  canvas.addEventListener('mousedown',function(e){dragging=true;handle(e);});
+  canvas.addEventListener('mousemove',function(e){if(dragging)handle(e);});
+  window.addEventListener('mouseup',function(){dragging=false;});
+  canvas.addEventListener('touchstart',function(e){dragging=true;handle(e);},{passive:true});
+  canvas.addEventListener('touchmove',function(e){e.preventDefault();if(dragging)handle(e);},{passive:false});
+  canvas.addEventListener('touchend',function(){dragging=false;});
+}
+
+/* ── HARMONY ── */
+function calcHarmony(){
+  var h=S.hue,s=S.sat,v=S.val,cols=[];
+  cols.push({h:h,s:s,v:v,lbl:'Base'});
+  if(S.harmony==='monochromatic'){
+    cols.push({h:h,s:Math.max(10,s-40),v:v,lbl:'Tinte'});
+    cols.push({h:h,s:s,v:Math.max(15,v-40),lbl:'Sombra'});
+    cols.push({h:h,s:Math.max(20,s-20),v:Math.max(20,v-20),lbl:'Tono'});
+  }else if(S.harmony==='analogous'){
+    cols.push({h:(h-45+360)%360,s:s,v:v,lbl:'Análogo −45°'});
+    cols.push({h:(h+45)%360,s:s,v:v,lbl:'Análogo +45°'});
+    cols.push({h:(h-90+360)%360,s:Math.max(20,s-20),v:v,lbl:'Acento'});
+  }else if(S.harmony==='complementary'){
+    cols.push({h:(h+180)%360,s:s,v:v,lbl:'Complemento'});
+    cols.push({h:h,s:Math.max(15,s-30),v:v,lbl:'Base Suave'});
+    cols.push({h:(h+180)%360,s:Math.max(15,s-30),v:v,lbl:'Compl. Suave'});
+  }else if(S.harmony==='triadic'){
+    cols.push({h:(h+120)%360,s:s,v:v,lbl:'Tríada 1'});
+    cols.push({h:(h+240)%360,s:s,v:v,lbl:'Tríada 2'});
+    cols.push({h:h,s:Math.max(20,s-40),v:Math.max(20,v-20),lbl:'Neutro'});
+  }
+  return cols.map(function(c){
+    var rgb=hsv2rgb(c.h,c.s,c.v);
+    return Object.assign({},c,{rgb:rgb,hex:hex(rgb[0],rgb[1],rgb[2])});
+  });
+}
+
+/* ── MATH ── */
+function hsv2rgb(h,s,v){
+  h/=360;s/=100;v/=100;
+  var r,g,b,i=Math.floor(h*6),f=h*6-i,p=v*(1-s),q=v*(1-f*s),t=v*(1-(1-f)*s);
+  switch(i%6){case 0:r=v;g=t;b=p;break;case 1:r=q;g=v;b=p;break;case 2:r=p;g=v;b=t;break;case 3:r=p;g=q;b=v;break;case 4:r=t;g=p;b=v;break;case 5:r=v;g=p;b=q;break;}
+  return[Math.round(r*255),Math.round(g*255),Math.round(b*255)];
+}
+function hex(r,g,b){return'#'+((1<<24)+(r<<16)+(g<<8)+b).toString(16).slice(1).toUpperCase();}
+function cmyk(r,g,b){
+  var rP=r/255,gP=g/255,bP=b/255,k=1-Math.max(rP,gP,bP);
+  if(k===1)return[0,0,0,100];
+  return[Math.round(((1-rP-k)/(1-k))*100),Math.round(((1-gP-k)/(1-k))*100),Math.round(((1-bP-k)/(1-k))*100),Math.round(k*100)];
+}
+function lum(r,g,b){return(r*299+g*587+b*114)/1000;}
+function relL(rgb){
+  var m=rgb.map(function(v){var s=v/255;return s<=0.03928?s/12.92:Math.pow((s+0.055)/1.055,2.4);});
+  return 0.2126*m[0]+0.7152*m[1]+0.0722*m[2];
+}
+function contrastRatio(a,b){
+  var l1=relL(a),l2=relL(b);
+  return(Math.max(l1,l2)+0.05)/(Math.min(l1,l2)+0.05);
+}
+function s(id,prop,val){var el=document.getElementById(id);if(el)el.style[prop]=val;}
+</script>
+</body>
+</html>
